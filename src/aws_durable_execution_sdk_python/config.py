@@ -7,6 +7,8 @@ from dataclasses import dataclass, field
 from enum import Enum, StrEnum
 from typing import TYPE_CHECKING, Generic, TypeVar
 
+from aws_durable_execution_sdk_python.exceptions import ValidationError
+
 P = TypeVar("P")  # Payload type
 R = TypeVar("R")  # Result type
 T = TypeVar("T")
@@ -23,6 +25,42 @@ if TYPE_CHECKING:
 
 
 Numeric = int | float  # deliberately leaving off complex
+
+
+@dataclass(frozen=True)
+class Duration:
+    """Represents a duration stored as total seconds."""
+
+    seconds: int = 0
+
+    def __post_init__(self):
+        if self.seconds < 0:
+            msg = "Duration seconds must be positive"
+            raise ValidationError(msg)
+
+    def to_seconds(self) -> int:
+        """Convert the duration to total seconds."""
+        return self.seconds
+
+    @classmethod
+    def from_seconds(cls, value: float) -> Duration:
+        """Create a Duration from total seconds."""
+        return cls(seconds=int(value))
+
+    @classmethod
+    def from_minutes(cls, value: float) -> Duration:
+        """Create a Duration from minutes."""
+        return cls(seconds=int(value * 60))
+
+    @classmethod
+    def from_hours(cls, value: float) -> Duration:
+        """Create a Duration from hours."""
+        return cls(seconds=int(value * 3600))
+
+    @classmethod
+    def from_days(cls, value: float) -> Duration:
+        """Create a Duration from days."""
+        return cls(seconds=int(value * 86400))
 
 
 @dataclass(frozen=True)
@@ -343,18 +381,33 @@ class MapConfig:
 @dataclass
 class InvokeConfig(Generic[P, R]):
     # retry_strategy: Callable[[Exception, int], RetryDecision] | None = None
-    timeout_seconds: int = 0
+    timeout: Duration = field(default_factory=Duration)
     serdes_payload: SerDes[P] | None = None
     serdes_result: SerDes[R] | None = None
+
+    @property
+    def timeout_seconds(self) -> int:
+        """Get timeout in seconds."""
+        return self.timeout.to_seconds()
 
 
 @dataclass(frozen=True)
 class CallbackConfig:
     """Configuration for callbacks."""
 
-    timeout_seconds: int = 0
-    heartbeat_timeout_seconds: int = 0
+    timeout: Duration = field(default_factory=Duration)
+    heartbeat_timeout: Duration = field(default_factory=Duration)
     serdes: SerDes | None = None
+
+    @property
+    def timeout_seconds(self) -> int:
+        """Get timeout in seconds."""
+        return self.timeout.to_seconds()
+
+    @property
+    def heartbeat_timeout_seconds(self) -> int:
+        """Get heartbeat timeout in seconds."""
+        return self.heartbeat_timeout.to_seconds()
 
 
 @dataclass(frozen=True)
