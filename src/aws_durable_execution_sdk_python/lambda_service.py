@@ -22,10 +22,10 @@ if TYPE_CHECKING:
 
     from aws_durable_execution_sdk_python.identifier import OperationIdentifier
 
-ReplayChildren: TypeAlias = bool  # noqa UP040 ignore due to python3.11 minimum version
-OperationPayload: TypeAlias = str  # noqa UP040 ignore due to python3.11 minimum version
-TimeoutSeconds: TypeAlias = int  # noqa UP040 ignore due to python3.11 minimum version
-
+# Replace with `type` it when dropping support to Python 3.11
+ReplayChildren: TypeAlias = bool
+OperationPayload: TypeAlias = str
+TimeoutSeconds: TypeAlias = int
 
 logger = logging.getLogger(__name__)
 
