@@ -1481,6 +1481,8 @@ def test_operation_from_dict_complete():
     assert operation.step_details.result == "step_result"
     assert operation.wait_details.scheduled_end_timestamp == start_time
     assert operation.callback_details.callback_id == "cb1"
+    assert operation.chained_invoke_details is not None
+    assert operation.chained_invoke_details.result == "invoke_result"
 
 
 def test_operation_to_dict_with_subtype():

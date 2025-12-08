@@ -749,7 +749,7 @@ class Operation:
             callback_details = CallbackDetails.from_dict(callback_details_input)
 
         chained_invoke_details = None
-        if chained_invoke_details := data.get("chained_invoke_details"):
+        if chained_invoke_details := data.get("ChainedInvokeDetails"):
             chained_invoke_details = ChainedInvokeDetails.from_dict(
                 chained_invoke_details
             )
