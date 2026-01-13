@@ -1031,19 +1031,32 @@ class DurableServiceClient(Protocol):
 class LambdaClient(DurableServiceClient):
     """Persist durable operations to the Lambda Durable Function APIs."""
 
+    _cached_boto_client: Any = None
+
     def __init__(self, client: Any) -> None:
         self.client = client
 
-    @staticmethod
-    def initialize_client() -> LambdaClient:
-        client = boto3.client(
-            "lambda",
-            config=Config(
-                connect_timeout=5,
-                read_timeout=50,
-            ),
-        )
-        return LambdaClient(client=client)
+    @classmethod
+    def initialize_client(cls) -> LambdaClient:
+        """Initialize or return cached Lambda client.
+
+        Implements lazy initialization with class-level caching to optimize
+        Lambda warm starts. The boto3 client is created once and reused across
+        invocations, avoiding repeated credential resolution and connection
+        pool setup.
+
+        Returns:
+            LambdaClient: A new LambdaClient instance wrapping the cached boto3 client.
+        """
+        if cls._cached_boto_client is None:
+            cls._cached_boto_client = boto3.client(
+                "lambda",
+                config=Config(
+                    connect_timeout=5,
+                    read_timeout=50,
+                ),
+            )
+        return cls(client=cls._cached_boto_client)
 
     def checkpoint(
         self,
